@@ -44,10 +44,12 @@ const createTask = async (req, res, next) => {
   }
 };
 
-const getTaskCreatedBy = async (req, res, next) => {
+const getTasks = async (req, res, next) => {
   try {
     const userId = req.user;
     const role = req.role;
+
+    let filter = {};
 
     if (role === "user") {
       filter.assignedTo = userId;
@@ -66,4 +68,27 @@ const getTaskCreatedBy = async (req, res, next) => {
   }
 };
 
-export { createTask, getTaskCreatedBy };
+const updateStatus = async (req, res, next) => {
+  try {
+    const { taskId, status } = req.body;
+    console.log(taskId);
+    if (!taskId || !status) {
+      throw Error("Task id and status is required");
+    }
+
+    const taskExist = await Task.findById(taskId);
+
+    if (!taskExist) {
+      throw Error("Task does not exist");
+    }
+
+    const updatedTask = await Task.findByIdAndUpdate(taskId, { status });
+    return res
+      .status(200)
+      .json({ message: "Task updated sucessfully", updatedTask });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export { createTask, getTasks, updateStatus };
